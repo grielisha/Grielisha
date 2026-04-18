@@ -136,6 +136,9 @@ SIMPLE_JWT = {
 
 # CORS Configuration (Dynamic + Local Dev Fallbacks)
 env_cors = config('CORS_ALLOWED_ORIGINS', default='', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
+# Safety Filter: Only include origins that have a proper scheme (required by Django 4.0+)
+valid_env_cors = [origin for origin in env_cors if origin.startswith('http')]
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -143,7 +146,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3001",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-] + env_cors
+] + valid_env_cors
 
 
 CORS_ALLOW_CREDENTIALS = True
@@ -156,7 +159,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3001",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-] + env_cors
+] + valid_env_cors
 
 # Security Settings
 CSRF_COOKIE_SECURE = not DEBUG
