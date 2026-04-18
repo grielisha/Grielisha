@@ -149,6 +149,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3001",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://grielisha-ziy4-git-main-grielisha.vercel.app",
+    "https://grielisha.vercel.app",
 ] + valid_env_cors
 
 
@@ -162,6 +164,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3001",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://grielisha-ziy4-git-main-grielisha.vercel.app",
+    "https://grielisha.vercel.app",
 ] + valid_env_cors
 
 # Security Settings
