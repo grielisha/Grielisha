@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='your-secret-key-here')
 DEBUG = config('DEBUG', default=True, cast=bool)
 # Allowed hosts (Hardcoded wildcard for Render troubleshooting)
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*', 'grielisha-backend.onrender.com', 'grielisha-digital.vercel.app']
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
