@@ -1,15 +1,21 @@
 import logging
 from django.db.utils import IntegrityError
+from django.apps import apps
 
 logger = logging.getLogger(__name__)
 
 def ensure_admin_accounts():
     """
-    Fail-safe provisioner that ensures Admin and Staff accounts exist.
-    Runs on every server startup via AppConfig.ready().
+    Late-binding provisioner that ensures Admin and Staff accounts exist.
+    Uses apps.get_model to safely retrieve the User model after registry is ready.
     """
-    from accounts.models import User
-    
+    try:
+        # Late binding retrieval of User model
+        User = apps.get_model('accounts', 'User')
+    except (LookupError, RuntimeError):
+        # This can happen if called too early; the apps.py should catch this
+        return
+
     accounts = [
         {
             'email': 'admin@grielisha.com',
@@ -31,6 +37,7 @@ def ensure_admin_accounts():
 
     for acc in accounts:
         try:
+            # Use get_or_create to avoid duplicates
             user, created = User.objects.get_or_create(
                 email=acc['email'],
                 defaults={
@@ -41,16 +48,18 @@ def ensure_admin_accounts():
                 }
             )
             
-            # Always ensure the password is correct for these specific accounts
+            # Reset password to ensure it matches exactly the provided credentials
             user.set_password(acc['password'])
             user.save()
             
-            status = "CREATED" if created else "VERIFIED/UPDATED"
-            logger.info(f"GRIELISHA Provisioning: Account {acc['email']} {status}")
-            print(f"GRIELISHA Provisioning: Account {acc['email']} {status}")
+            status = "CREATED" if created else "SYNCED"
+            msg = f"GRIELISHA: Account {acc['email']} {status} successfully."
+            logger.info(msg)
+            print(msg)
             
         except Exception as e:
-            logger.error(f"GRIELISHA Provisioning Error for {acc['email']}: {str(e)}")
-            print(f"GRIELISHA Provisioning Error for {acc['email']}: {str(e)}")
+            err_msg = f"GRIELISHA Error provisioning {acc['email']}: {str(e)}"
+            logger.error(err_msg)
+            print(err_msg)
 
-    print("GRIELISHA: All administrative accounts are ready.")
+    print("GRIELISHA: SYSTEM ACCOUNTS FULLY PROVISIONED.")

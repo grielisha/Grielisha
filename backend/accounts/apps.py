@@ -9,5 +9,6 @@ class AccountsConfig(AppConfig):
         from .provisioner import ensure_admin_accounts
         try:
             ensure_admin_accounts()
-        except:
-            pass # Avoid blocking startup if DB isn't ready
+        except Exception as e:
+            # Log the exact failure reason to the server console
+            print(f"GRIELISHA STARTUP ERROR: {str(e)}")
