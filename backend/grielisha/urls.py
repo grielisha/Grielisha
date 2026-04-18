@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from django.http import JsonResponse
+from core.views import force_provision
 
 def api_info(request):
     return JsonResponse({
@@ -23,6 +24,7 @@ def api_info(request):
 
 urlpatterns = [
     path('', api_info, name='api_info'),
+    path('api/debug/provision/', force_provision, name='force_provision'),
     path('api/', api_info, name='api_info_alt'),
     path('admin/', admin.site.urls),
     path('api/auth/', include('accounts.urls')),

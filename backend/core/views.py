@@ -1,3 +1,9 @@
-from django.shortcuts import render
+from django.http import JsonResponse
+from accounts.provisioner import ensure_admin_accounts
 
-# Create your views here.
+def force_provision(request):
+    """
+    Emergency endpoint to manually trigger administrative provisioning.
+    """
+    result = ensure_admin_accounts()
+    return JsonResponse(result)
