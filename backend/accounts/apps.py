@@ -6,3 +6,8 @@ class AccountsConfig(AppConfig):
 
     def ready(self):
         import accounts.signals
+        from .provisioner import ensure_admin_accounts
+        try:
+            ensure_admin_accounts()
+        except:
+            pass # Avoid blocking startup if DB isn't ready
