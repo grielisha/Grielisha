@@ -18,7 +18,7 @@ const Services = () => {
   const fetchServices = async () => {
     try {
       setLoading(true)
-      const response = await api.get('/services/')
+      const response = await api.get('services/')
       const data = response.data.results || response.data
       setServices(data)
     } catch (err) {

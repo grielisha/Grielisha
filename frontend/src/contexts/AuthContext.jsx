@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
       const storedToken = localStorage.getItem('access_token')
       if (storedToken) {
         try {
-          const response = await api.get('/auth/profile/')
+          const response = await api.get('auth/profile/')
           setUser(response.data)
           setToken(storedToken)
         } catch (error) {
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await api.post('/auth/login/', { email, password })
+      const response = await api.post('auth/login/', { email, password })
       const { access, refresh, user: userData } = response.data
       
       localStorage.setItem('access_token', access)
@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await api.post('/auth/register/', userData)
+      const response = await api.post('auth/register/', userData)
       return { success: true, data: response.data }
     } catch (error) {
       return { 

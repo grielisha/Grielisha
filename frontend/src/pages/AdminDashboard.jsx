@@ -161,7 +161,7 @@ const AdminDashboard = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await api.get('/products/categories/')
+      const response = await api.get('products/categories/')
       setCategories(response.data)
     } catch (err) {
       console.error("Failed to fetch categories")

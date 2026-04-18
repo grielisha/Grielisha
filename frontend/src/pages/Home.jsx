@@ -16,7 +16,7 @@ const Home = () => {
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
-        const response = await api.get('/products/recommendations/')
+        const response = await api.get('products/recommendations/')
         setRecommendations(response.data)
       } catch (err) {
         console.error("Failed to fetch recommendations", err)

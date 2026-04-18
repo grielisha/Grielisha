@@ -28,7 +28,7 @@ const Shop = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true)
-      const response = await api.get('/products/')
+      const response = await api.get('products/')
       // Handle DRF pagination results or direct array
       const data = response.data.results || response.data
       setProducts(data)
@@ -42,7 +42,7 @@ const Shop = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await api.get('/products/categories/')
+      const response = await api.get('products/categories/')
       const data = response.data.results || response.data || []
       setCategories(['All Categories', ...data.map(c => c.name)])
     } catch (err) {
