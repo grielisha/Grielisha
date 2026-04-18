@@ -38,3 +38,8 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Django Admin Customization
+admin.site.site_header = "GRIELISHA Ecosystem Management"
+admin.site.site_title = "GRIELISHA Admin"
+admin.site.index_title = "Welcome to GRIELISHA Digital Back-Office"
