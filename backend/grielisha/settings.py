@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='your-secret-key-here')
 DEBUG = config('DEBUG', default=True, cast=bool)
 # Automatically allow cloud environments if parsed from the variables.
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,grielisha.onrender.com', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,.onrender.com', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
 
 DJANGO_APPS = [
     'django.contrib.admin',
