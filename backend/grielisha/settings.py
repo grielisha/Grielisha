@@ -7,8 +7,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY', default='your-secret-key-here')
 DEBUG = config('DEBUG', default=True, cast=bool)
-# Allowed hosts (Environment + Cloud Wildcards)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
+# Allowed hosts (Hardcoded wildcard for Render troubleshooting)
+ALLOWED_HOSTS = ['*']
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
 
 DJANGO_APPS = [
     'django.contrib.admin',
