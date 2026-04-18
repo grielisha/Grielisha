@@ -50,6 +50,11 @@ function AppContent() {
               <UserDashboard />
             </ProtectedRoute>
           } />
+          <Route path="/admin-dashboard" element={
+            <ProtectedRoute adminOnly>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/wishlist" element={
             <ProtectedRoute>
               <Wishlist />
