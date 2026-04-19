@@ -19,7 +19,13 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // ... rest of state stays same ...
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalType, setModalType] = useState('product') // 'product' | 'service'
+  const [isEditing, setIsEditing] = useState(false)
+  const [editingItem, setEditingItem] = useState(null)
+  const [formData, setFormData] = useState({})
+  const [selectedProductIds, setSelectedProductIds] = useState([])
+  const [selectedServiceIds, setSelectedServiceIds] = useState([])
 
   useEffect(() => {
     fetchDashboardData()
@@ -72,7 +78,46 @@ const AdminDashboard = () => {
     }
   }
 
-  // ... (Other handlers like handleBulkAction, handleSave etc. stay same) ...
+  const handleOpenModal = (type, item = null) => {
+    setModalType(type)
+    setIsEditing(!!item)
+    setEditingItem(item)
+    setFormData(item ? { ...item } : {})
+    setIsModalOpen(true)
+  }
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
+  }
+
+  const handleSave = async (e) => {
+    e.preventDefault()
+    try {
+      const endpoint = modalType === 'product' ? 'products/' : 'services/'
+      if (isEditing && editingItem) {
+        await api.patch(`${endpoint}${editingItem.id}/`, formData)
+      } else {
+        await api.post(endpoint, formData)
+      }
+      setIsModalOpen(false)
+      setFormData({})
+      fetchDashboardData()
+    } catch (err) {
+      alert(`Failed to save ${modalType}. Check all required fields.`)
+    }
+  }
+
+  const handleDelete = async (type, id) => {
+    if (!window.confirm(`Delete this ${type}? This cannot be undone.`)) return
+    try {
+      const endpoint = type === 'product' ? 'products/' : 'services/'
+      await api.delete(`${endpoint}${id}/`)
+      fetchDashboardData()
+    } catch (err) {
+      alert(`Failed to delete ${type}.`)
+    }
+  }
 
   const PaymentsTab = () => (
     <div className="space-y-6">
@@ -153,8 +198,9 @@ const AdminDashboard = () => {
     { id: 'products', label: 'Inventory', icon: <Package size={20} /> },
     { id: 'services', label: 'Eco-Services', icon: <Calendar size={20} /> },
     { id: 'payments', label: 'Payments', icon: <CreditCard size={20} /> },
-    { id: 'orders', label: 'Orders History', icon: <ShoppingBag size={20} /> },
+    { id: 'orders', label: 'Orders', icon: <ShoppingBag size={20} /> },
     { id: 'bookings', label: 'Bookings', icon: <Calendar size={20} /> },
+    { id: 'logistics', label: 'Logistics Log', icon: <TrendingUp size={20} /> },
     { id: 'users', label: 'Customers', icon: <Users size={20} /> }
   ]
 
@@ -904,6 +950,137 @@ const AdminDashboard = () => {
     </div>
   )
 
+  const LogisticsTab = () => {
+    // Merge orders and bookings into a single chronological log
+    const orderEntries = orders.map(o => ({
+      id: o.id,
+      type: 'Order',
+      customer: o.user_email || o.email || 'N/A',
+      date: o.created_at,
+      amount: o.total_amount,
+      status: o.status,
+      delivery_status: o.delivery_status,
+      transport_provider: o.transport_provider,
+      tracking_number: o.tracking_number,
+      destination: o.shipping_address ? `${o.shipping_address}${o.city ? ', ' + o.city : ''}` : 'N/A',
+    }))
+    const bookingEntries = bookings.map(b => ({
+      id: b.id,
+      type: 'Booking',
+      customer: b.user_email || 'N/A',
+      date: b.created_at,
+      amount: b.total_price,
+      status: b.status,
+      delivery_status: null,
+      transport_provider: null,
+      tracking_number: null,
+      destination: b.location || 'N/A',
+      service_name: b.service_name,
+      booking_date: b.booking_date,
+      booking_time: b.booking_time,
+    }))
+    const combined = [...orderEntries, ...bookingEntries].sort(
+      (a, b) => new Date(b.date) - new Date(a.date)
+    )
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h3 className="text-2xl font-bold text-glow uppercase tracking-wider">Logistics & Operations Log</h3>
+          <button onClick={fetchDashboardData} className="p-2 border border-white/10 rounded-lg hover:bg-white/5 text-gray-400">
+            <RefreshCw size={20} />
+          </button>
+        </div>
+        <div className="glass rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="glass-dark">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">ID</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Customer</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Destination</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Order Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Delivery</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Tracking</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {combined.map((entry, idx) => (
+                  <tr key={`${entry.type}-${entry.id}-${idx}`} className="hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+                        entry.type === 'Order' ? 'bg-accent/20 text-accent' : 'bg-blue-500/20 text-blue-400'
+                      }`}>
+                        {entry.type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">#{entry.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{entry.customer}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                      {new Date(entry.date).toLocaleDateString()}
+                      {entry.type === 'Booking' && entry.booking_date && (
+                        <span className="block text-xs text-blue-400">
+                          Svc: {entry.booking_date} {entry.booking_time}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-300 max-w-[180px] truncate">
+                      {entry.type === 'Booking' && entry.service_name && (
+                        <span className="block text-xs text-blue-300 font-semibold">{entry.service_name}</span>
+                      )}
+                      {entry.destination}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-accent font-semibold">
+                      KES {parseFloat(entry.amount).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+                        entry.status === 'paid' || entry.status === 'confirmed' ? 'bg-green-500/20 text-green-400' :
+                        entry.status === 'pending' || entry.status === 'pending_payment' ? 'bg-yellow-500/20 text-yellow-400' :
+                        entry.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                        'bg-blue-500/20 text-blue-400'
+                      }`}>
+                        {entry.status?.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {entry.delivery_status ? (
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+                          entry.delivery_status === 'delivered' ? 'bg-green-500/20 text-green-400' :
+                          entry.delivery_status === 'in_transit' ? 'bg-blue-500/20 text-blue-400' :
+                          entry.delivery_status === 'dispatched' ? 'bg-purple-500/20 text-purple-400' :
+                          'bg-gray-500/20 text-gray-400'
+                        }`}>
+                          {entry.delivery_status.replace('_', ' ')}
+                        </span>
+                      ) : (
+                        <span className="text-gray-600 text-xs italic">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {entry.tracking_number ? (
+                        <span className="text-accent font-mono text-xs bg-accent/10 px-2 py-1 rounded">{entry.tracking_number}</span>
+                      ) : entry.transport_provider ? (
+                        <span className="text-gray-300 text-xs">{entry.transport_provider}</span>
+                      ) : (
+                        <span className="text-gray-600 text-xs italic">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {combined.length === 0 && (
+              <div className="p-12 text-center text-gray-500">No logistics records found.</div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-primary flex items-center justify-center pt-20">
@@ -965,6 +1142,7 @@ const AdminDashboard = () => {
           {activeTab === 'payments' && <PaymentsTab />}
           {activeTab === 'orders' && <OrdersTab />}
           {activeTab === 'bookings' && <BookingsTab />}
+          {activeTab === 'logistics' && <LogisticsTab />}
           {activeTab === 'users' && <UsersTab />}
         </motion.div>
 

@@ -11,18 +11,17 @@ class IsAdminOrReadOnly(permissions.BasePermission):
 
 class ServiceListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrReadOnly]
-    
-    def get_queryset(self):
-        if self.request.user and self.request.user.is_staff:
-            return Service.objects.all()
-        return Service.objects.filter(is_active=True)
-    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['service_type']
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'base_price', 'created_at']
     ordering = ['-created_at']
-    
+
+    def get_queryset(self):
+        if self.request.user and self.request.user.is_authenticated and self.request.user.is_staff:
+            return Service.objects.all()
+        return Service.objects.filter(is_active=True)
+
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return ServiceListSerializer

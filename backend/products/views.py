@@ -54,28 +54,30 @@ class ProductListCreateView(generics.ListCreateAPIView):
     Staff members can view all products, while customers see only active items.
     """
     permission_classes = [IsAdminOrReadOnly]
-    permission_classes = [IsAdminOrReadOnly]
-    
-    def get_queryset(self):
-        if self.request.user and self.request.user.is_staff:
-            return Product.objects.all()
-        return Product.objects.filter(is_active=True)
-    
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['category', 'category_type']
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'price', 'created_at']
     ordering = ['-created_at']
-    
+
+    def get_queryset(self):
+        if self.request.user and self.request.user.is_authenticated and self.request.user.is_staff:
+            return Product.objects.all()
+        return Product.objects.filter(is_active=True)
+
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return ProductListSerializer
         return ProductSerializer
 
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsAdminOrReadOnly]
+
+    def get_queryset(self):
+        if self.request.user and self.request.user.is_authenticated and self.request.user.is_staff:
+            return Product.objects.all()
+        return Product.objects.filter(is_active=True)
 
 class CategoryListCreateView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
