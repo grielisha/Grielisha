@@ -142,20 +142,29 @@ env_cors = config('CORS_ALLOWED_ORIGINS', default='', cast=lambda v: [s.strip() 
 # Safety Filter: Only include origins that have a proper scheme (required by Django 4.0+)
 valid_env_cors = [origin for origin in env_cors if origin.startswith('http')]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://grielisha-ziy4-git-main-grielisha.vercel.app",
-    "https://grielisha.vercel.app",
-    "https://grielisha-digital.vercel.app",
-] + valid_env_cors
-
-
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
 
 # CSRF Trusted Origins
 CSRF_TRUSTED_ORIGINS = [
@@ -166,8 +175,11 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://grielisha-ziy4-git-main-grielisha.vercel.app",
+    "https://grielisha-ziy4-dtfiuvbzs-grielisha.vercel.app",
+    "https://grielisha-ziy4-ozwlowuzy-grielisha.vercel.app",
     "https://grielisha.vercel.app",
     "https://grielisha-digital.vercel.app",
+    "https://grielisha-backend.onrender.com",
 ] + valid_env_cors
 
 # Security Settings

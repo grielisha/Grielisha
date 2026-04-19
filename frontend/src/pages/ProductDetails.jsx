@@ -17,8 +17,8 @@ const ProductDetails = () => {
       try {
         setLoading(true)
         const [prodRes, wishRes] = await Promise.all([
-          api.get(`/products/${id}/`),
-          api.get('/products/wishlist/').catch(() => ({ data: { products: [] } }))
+          api.get(`products/${id}/`),
+          api.get('products/wishlist/').catch(() => ({ data: { products: [] } }))
         ])
         setProduct(prodRes.data)
         setIsWishlisted(wishRes.data.products.includes(parseInt(id)))
@@ -34,7 +34,7 @@ const ProductDetails = () => {
   const handleAddToCart = async () => {
     try {
       setAddedToCart(true)
-      await api.post('/orders/cart/add/', { product: id, quantity })
+      await api.post('orders/cart/add/', { product: id, quantity })
       setTimeout(() => setAddedToCart(false), 3000)
     } catch (err) {
       alert("Failed to add to cart")
@@ -44,7 +44,7 @@ const ProductDetails = () => {
 
   const toggleWishlist = async () => {
     try {
-      const res = await api.post('/products/wishlist/toggle/', { product_id: id })
+      const res = await api.post('products/wishlist/toggle/', { product_id: id })
       setIsWishlisted(res.data.status === 'added')
     } catch (err) {
       console.error("Wishlist toggle error")

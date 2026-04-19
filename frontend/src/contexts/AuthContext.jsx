@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const refreshToken = localStorage.getItem('refresh_token')
       if (refreshToken) {
-        await api.post('/auth/logout/', { 
+        await api.post('auth/logout/', { 
           refresh_token: refreshToken 
         })
       }
@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (profileData) => {
     try {
-      const response = await api.patch('/auth/profile/', profileData)
+      const response = await api.patch('auth/profile/', profileData)
       setUser(response.data)
       return { success: true }
     } catch (error) {

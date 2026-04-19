@@ -1,6 +1,15 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+// Normalize URL: Remove any trailing slashes then add exactly one
+let normalized = rawUrl.replace(/\/+$/, '') + '/'
+
+// Force /api/ if missing
+if (!normalized.endsWith('/api/')) {
+    normalized = normalized + 'api/'
+}
+
+const API_BASE_URL = normalized
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -34,7 +43,8 @@ api.interceptors.response.use(
       
       try {
         const refreshToken = localStorage.getItem('refresh_token')
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
+        // Use clean construction without double slashes
+        const response = await axios.post(`${API_BASE_URL}auth/refresh/`, {
           refresh: refreshToken
         })
         

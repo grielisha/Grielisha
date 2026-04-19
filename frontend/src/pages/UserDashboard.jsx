@@ -30,8 +30,8 @@ const UserDashboard = () => {
     try {
       setLoading(true)
       const [ordersRes, bookingsRes] = await Promise.all([
-        api.get('/orders/'),
-        api.get('/bookings/').catch(() => ({ data: { results: [] } }))
+        api.get('orders/'),
+        api.get('bookings/').catch(() => ({ data: { results: [] } }))
       ])
       setOrders(ordersRes.data.results || ordersRes.data || [])
       setBookings(bookingsRes.data.results || bookingsRes.data || [])
@@ -52,7 +52,7 @@ const UserDashboard = () => {
   const handleReorder = async (orderId) => {
     try {
       setReordering(true)
-      await api.post(`/orders/${orderId}/reorder/`)
+      await api.post(`orders/${orderId}/reorder/`)
       alert("Items from order #" + orderId + " have been added to your cart!")
     } catch (err) {
       alert("Failed to reorder. Please try again.")

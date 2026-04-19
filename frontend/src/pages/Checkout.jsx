@@ -32,7 +32,7 @@ const Checkout = () => {
 
   const fetchCart = async () => {
     try {
-      const response = await api.get('/orders/cart/')
+      const response = await api.get('orders/cart/')
       setCartItems(response.data.items)
     } catch (err) {
       console.error("Failed to fetch cart")
@@ -81,7 +81,7 @@ const Checkout = () => {
 
     try {
       // 1. Create the Order
-      const orderResponse = await api.post('/orders/create/', {
+      const orderResponse = await api.post('orders/create/', {
         shipping_address: shippingInfo.address,
         full_name: shippingInfo.full_name,
         phone: shippingInfo.phone,
@@ -93,7 +93,7 @@ const Checkout = () => {
       const orderId = orderResponse.data.id
 
       // 2. Submit Payment Info
-      await api.post('/orders/payments/', {
+      await api.post('orders/payments/', {
         order: orderId,
         payment_method: paymentMethod,
         transaction_code: transactionCode || `COD-${orderId}-${Date.now()}`,

@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { ShoppingCart, User, Menu, X, LogOut, Heart } from 'lucide-react'
+import { ShoppingCart, User, Menu, X, LogOut, Heart, Globe, Activity } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import api from '../api/axios'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [apiStatus, setApiStatus] = useState('checking') // checking, online, offline
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -15,7 +15,24 @@ const Navbar = () => {
       setScrolled(window.scrollY > 20)
     }
     window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    
+    // Ecosystem Heartbeat: Check connection to the third pillar (Backend)
+    const checkEcho = async () => {
+      try {
+        await api.get('') // Hits the root api_info
+        setApiStatus('online')
+      } catch (err) {
+        setApiStatus('offline')
+      }
+    }
+    
+    checkEcho()
+    const interval = setInterval(checkEcho, 60000) // Pulse every minute
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      clearInterval(interval)
+    }
   }, [])
 
   const handleLogout = () => {
@@ -80,6 +97,12 @@ const Navbar = () => {
               </span>
             </Link>
 
+            {/* Ecosystem Pulse Monitor */}
+            <div className="flex items-center space-x-1 pl-2">
+              <div className={`w-2 h-2 rounded-full ${apiStatus === 'online' ? 'bg-green-500 shadow-glow' : apiStatus === 'offline' ? 'bg-red-500 shadow-glow-red' : 'bg-yellow-500 animate-pulse'}`}></div>
+              <span className="text-[9px] text-gray-500 font-mono tracking-tighter uppercase">{apiStatus === 'online' ? 'Live' : apiStatus === 'offline' ? 'Down' : 'Sync'}</span>
+            </div>
+
             {/* User Menu */}
             {user ? (
               <div className="flex items-center space-x-4">
@@ -91,7 +114,7 @@ const Navbar = () => {
                 </Link>
                 {user.role === 'admin' && (
                   <Link 
-                    to="/admin" 
+                    to="/admin-dashboard" 
                     className="text-glow hover:text-accent transition-colors text-sm"
                   >
                     Admin
@@ -175,7 +198,7 @@ const Navbar = () => {
                   </Link>
                   {user.role === 'admin' && (
                     <Link 
-                      to="/admin" 
+                      to="/admin-dashboard" 
                       className="text-glow hover:text-accent transition-colors"
                       onClick={() => setIsOpen(false)}
                     >

@@ -37,14 +37,14 @@ const AdminDashboard = () => {
     try {
       setLoading(true)
       const [statsRes, ordersRes, productsRes, servicesRes, activityRes, paymentsRes, usersRes, bookingsRes] = await Promise.all([
-        api.get('/products/stats/summary/'),
-        api.get('/orders/'),
-        api.get('/products/'),
-        api.get('/services/'),
-        api.get('/auth/activity-log/'),
-        api.get('/orders/payments/admin/'),
-        api.get('/auth/users/'),
-        api.get('/bookings/')
+        api.get('products/stats/summary/'),
+        api.get('orders/'),
+        api.get('products/'),
+        api.get('services/'),
+        api.get('auth/activity-log/'),
+        api.get('orders/payments/admin/'),
+        api.get('auth/users/'),
+        api.get('bookings/')
       ])
       setStats(statsRes.data.results || statsRes.data)
       setOrders(ordersRes.data.results || ordersRes.data)
@@ -65,7 +65,7 @@ const AdminDashboard = () => {
 
   const handleVerifyPayment = async (id, action) => {
     try {
-      await api.post(`/orders/payments/${id}/verify/`, { action })
+      await api.post(`orders/payments/${id}/verify/`, { action })
       fetchDashboardData()
     } catch (err) {
       alert("Action failed")
@@ -174,7 +174,7 @@ const AdminDashboard = () => {
     if (action === 'delete' && !window.confirm(`Delete ${ids.length} selected ${type}s?`)) return
     
     try {
-      await api.post(`/${type}s/bulk-action/`, { ids, action })
+      await api.post(`${type}s/bulk-action/`, { ids, action })
       if (type === 'product') setSelectedProductIds([])
       else setSelectedServiceIds([])
       fetchDashboardData()

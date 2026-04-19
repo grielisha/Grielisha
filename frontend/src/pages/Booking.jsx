@@ -26,7 +26,7 @@ const Booking = () => {
   const fetchService = async () => {
     try {
       setLoading(true)
-      const response = await api.get(`/services/${serviceId}/`)
+      const response = await api.get(`services/${serviceId}/`)
       setService(response.data)
     } catch (err) {
       console.error("Failed to load service", err)
@@ -89,7 +89,7 @@ const Booking = () => {
     setErrors({})
 
     try {
-      await api.post('/services/bookings/', {
+      await api.post('services/bookings/', {
         service: serviceId,
         ...bookingData
       })

@@ -14,7 +14,7 @@ const Wishlist = () => {
 
   const fetchWishlist = async () => {
     try {
-      const response = await api.get('/products/wishlist/')
+      const response = await api.get('products/wishlist/')
       setWishlist(response.data)
     } catch (err) {
       console.error("Failed to fetch wishlist")
@@ -25,7 +25,7 @@ const Wishlist = () => {
 
   const toggleWishlist = async (id, type) => {
     try {
-      await api.post('/products/wishlist/toggle/', { [type === 'product' ? 'product_id' : 'service_id']: id })
+      await api.post('products/wishlist/toggle/', { [type === 'product' ? 'product_id' : 'service_id']: id })
       fetchWishlist()
     } catch (err) {
       alert("Failed to update wishlist")
@@ -34,7 +34,7 @@ const Wishlist = () => {
 
   const addToCart = async (id, type) => {
     try {
-      await api.post('/orders/cart/add/', { [type]: id, quantity: 1 })
+      await api.post('orders/cart/add/', { [type]: id, quantity: 1 })
       alert("Added to cart!")
     } catch (err) {
       alert("Failed to add to cart")

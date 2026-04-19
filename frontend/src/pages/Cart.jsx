@@ -15,7 +15,7 @@ const Cart = () => {
   const fetchCartItems = async () => {
     try {
       setLoading(true)
-      const response = await api.get('/orders/cart/')
+      const response = await api.get('orders/cart/')
       // Cart endpoint returns a cart object with nested 'items' array
       const items = response.data?.items || response.data?.results || []
       setCartItems(Array.isArray(items) ? items : [])
@@ -36,7 +36,7 @@ const Cart = () => {
       return
     }
     try {
-      await api.patch(`/orders/cart/item/${itemId}/`, { quantity: newQty })
+      await api.patch(`orders/cart/item/${itemId}/`, { quantity: newQty })
       setCartItems(prev => prev.map(i =>
         i.id === itemId ? { ...i, quantity: newQty, subtotal: newQty * parseFloat(i.price) } : i
       ))
@@ -47,7 +47,7 @@ const Cart = () => {
 
   const handleRemoveItem = async (itemId) => {
     try {
-      await api.delete(`/orders/cart/item/${itemId}/`)
+      await api.delete(`orders/cart/item/${itemId}/`)
       setCartItems(prev => prev.filter(i => i.id !== itemId))
     } catch (err) {
       // Optimistically remove even on error

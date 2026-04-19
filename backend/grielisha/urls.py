@@ -8,8 +8,10 @@ from core.views import force_provision
 
 def api_info(request):
     return JsonResponse({
-        'message': 'GRIELISHA API',
-        'version': '1.0.0',
+        'status': 'online',
+        'message': 'GRIELISHA Ecosystem API - Synchronized',
+        'environment': 'production' if not settings.DEBUG else 'development',
+        'version': '1.1.0',
         'endpoints': {
             'auth': '/api/auth/',
             'products': '/api/products/',
@@ -34,6 +36,13 @@ urlpatterns = [
     path('api/bookings/', include('bookings.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+
+    # Fail-safe root aliases for misconfigured frontends
+    path('auth/', include('accounts.urls')),
+    path('products/', include('products.urls')),
+    path('services/', include('services.urls')),
+    path('orders/', include('orders.urls')),
+    path('bookings/', include('bookings.urls')),
 ]
 
 if settings.DEBUG:
