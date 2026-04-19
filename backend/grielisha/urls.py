@@ -4,10 +4,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from django.http import JsonResponse
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework import permissions
+from rest_framework.response import Response
 from core.views import force_provision
 
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
 def api_info(request):
-    return JsonResponse({
+    return Response({
         'status': 'online',
         'message': 'GRIELISHA Ecosystem API - Synchronized',
         'environment': 'production' if not settings.DEBUG else 'development',
