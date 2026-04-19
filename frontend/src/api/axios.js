@@ -38,16 +38,10 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
-    // If token is stale/malformed, the backend can return 400.
-    // Clear the bad token so future public requests work correctly.
+    // If token is stale/malformed, the backend might return 400 instead of 401.
     if (error.response?.status === 400 && originalRequest.headers?.Authorization) {
-      const refreshToken = localStorage.getItem('refresh_token')
-      // Only clear if no refresh token exists (meaning session is truly dead)
-      if (!refreshToken) {
-        localStorage.removeItem('access_token')
-        delete originalRequest.headers.Authorization
-        return api(originalRequest)
-      }
+      // Force it to be handled by the 401 logic below to attempt a refresh
+      error.response.status = 401;
     }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
