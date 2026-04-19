@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { ShoppingCart, User, Menu, X, LogOut, Heart, Globe, Activity } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import api from '../api/axios'
