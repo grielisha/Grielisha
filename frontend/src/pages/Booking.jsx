@@ -89,7 +89,7 @@ const Booking = () => {
     setErrors({})
 
     try {
-      await api.post('services/bookings/', {
+      await api.post('bookings/', {
         service: serviceId,
         ...bookingData
       })
