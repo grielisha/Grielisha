@@ -20,9 +20,11 @@ const AdminDashboard = () => {
   const [error, setError] = useState(null)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isLogisticsModalOpen, setIsLogisticsModalOpen] = useState(false)
   const [modalType, setModalType] = useState('product') // 'product' | 'service'
   const [isEditing, setIsEditing] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
+  const [selectedEntry, setSelectedEntry] = useState(null)
   const [formData, setFormData] = useState({})
   const [selectedProductIds, setSelectedProductIds] = useState([])
   const [selectedServiceIds, setSelectedServiceIds] = useState([])
@@ -104,7 +106,25 @@ const AdminDashboard = () => {
       setFormData({})
       fetchDashboardData()
     } catch (err) {
-      alert(`Failed to save ${modalType}. Check all required fields.`)
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || `Failed to save ${modalType}.`
+      const details = typeof errorMsg === 'object' ? Object.entries(errorMsg).map(([k, v]) => `${k}: ${v}`).join(', ') : errorMsg
+      alert(`Error: ${details}`)
+    }
+  }
+
+  const handleUpdateLogistics = async (e) => {
+    e.preventDefault()
+    try {
+      await api.patch(`orders/${selectedEntry.id}/`, {
+        delivery_status: formData.delivery_status,
+        transport_provider: formData.transport_provider,
+        tracking_number: formData.tracking_number,
+        estimated_delivery_date: formData.estimated_delivery_date
+      })
+      setIsLogisticsModalOpen(false)
+      fetchDashboardData()
+    } catch (err) {
+      alert("Failed to update logistics status.")
     }
   }
 
@@ -142,7 +162,7 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {payments.map((payment) => (
+              {(payments || []).length > 0 ? (payments || []).map((payment) => (
                 <tr key={payment.id} className="hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2 text-white">
@@ -156,23 +176,22 @@ const AdminDashboard = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-white">{payment.transaction_code}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-accent font-bold">KES {parseFloat(payment.amount).toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                      payment.status === 'verified' ? 'bg-green-500/20 text-green-400' : 
-                      payment.status === 'rejected' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${payment.status === 'verified' ? 'bg-green-500/20 text-green-400' :
+                        payment.status === 'rejected' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'
+                      }`}>
                       {payment.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     {payment.status === 'pending' && (
                       <div className="flex justify-end space-x-2">
-                        <button 
+                        <button
                           onClick={() => handleVerifyPayment(payment.id, 'verify')}
                           className="p-1 px-3 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-all text-xs flex items-center"
                         >
                           <Check size={14} className="mr-1" /> Approve
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleVerifyPayment(payment.id, 'reject')}
                           className="p-1 px-3 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-all text-xs flex items-center"
                         >
@@ -218,7 +237,7 @@ const AdminDashboard = () => {
     const ids = type === 'product' ? selectedProductIds : selectedServiceIds
     if (!ids.length) return
     if (action === 'delete' && !window.confirm(`Delete ${ids.length} selected ${type}s?`)) return
-    
+
     try {
       await api.post(`${type}s/bulk-action/`, { ids, action })
       if (type === 'product') setSelectedProductIds([])
@@ -247,11 +266,11 @@ const AdminDashboard = () => {
 
   const handleSelectItem = (type, id) => {
     if (type === 'product') {
-      setSelectedProductIds(prev => 
+      setSelectedProductIds(prev =>
         prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
       )
     } else {
-      setSelectedServiceIds(prev => 
+      setSelectedServiceIds(prev =>
         prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
       )
     }
@@ -269,26 +288,26 @@ const AdminDashboard = () => {
           <div className="glass-dark border border-accent/30 rounded-full px-6 py-3 flex items-center space-x-6 shadow-2xl backdrop-blur-md">
             <span className="text-white font-medium">{selectedCount} selected</span>
             <div className="flex space-x-2">
-              <button 
+              <button
                 onClick={() => handleBulkAction(type, 'set_active')}
                 className="text-xs bg-green-500/20 text-green-400 px-3 py-1.5 rounded-full hover:bg-green-500/30 transition-colors"
               >
                 Set Active
               </button>
-              <button 
+              <button
                 onClick={() => handleBulkAction(type, 'set_inactive')}
                 className="text-xs bg-yellow-500/20 text-yellow-400 px-3 py-1.5 rounded-full hover:bg-yellow-500/30 transition-colors"
               >
                 Set Inactive
               </button>
-              <button 
+              <button
                 onClick={() => handleBulkAction(type, 'delete')}
                 className="text-xs bg-red-500/20 text-red-400 px-3 py-1.5 rounded-full hover:bg-red-500/30 transition-colors"
               >
                 Delete
               </button>
             </div>
-            <button 
+            <button
               onClick={() => type === 'product' ? setSelectedProductIds([]) : setSelectedServiceIds([])}
               className="text-gray-400 hover:text-white transition-colors"
             >
@@ -575,8 +594,8 @@ const AdminDashboard = () => {
             <button className="text-sm text-accent hover:text-white transition-colors">View All</button>
           </div>
           <div className="space-y-4">
-            {activities.length > 0 ? (
-              activities.map((log) => (
+            {(activities || []).length > 0 ? (
+              (activities || []).map((log) => (
                 <div key={log.id} className="flex items-start space-x-3 border-b border-white/5 pb-3">
                   <div className="bg-accent/10 p-2 rounded-lg">
                     <TrendingUp size={16} className="text-accent" />
@@ -640,7 +659,7 @@ const AdminDashboard = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-2xl font-bold text-glow uppercase tracking-wider">Product Inventory</h3>
-        <button 
+        <button
           onClick={() => handleOpenModal('product')}
           className="btn-premium flex items-center space-x-2"
         >
@@ -648,15 +667,15 @@ const AdminDashboard = () => {
           <span>Add Product</span>
         </button>
       </div>
-      
+
       <div className="glass rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="glass-dark">
               <tr>
                 <th className="px-6 py-4 text-left">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     onChange={() => handleSelectAll('product', products)}
                     checked={selectedProductIds.length === products.length && products.length > 0}
                     className="w-4 h-4 bg-accent/20 border-white/10 rounded"
@@ -671,11 +690,11 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {products.map((product) => (
+              {(products || []).map((product) => (
                 <tr key={product.id} className={`hover:bg-white/5 transition-colors ${selectedProductIds.includes(product.id) ? 'bg-accent/5' : ''}`}>
                   <td className="px-6 py-4">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       onChange={() => handleSelectItem('product', product.id)}
                       checked={selectedProductIds.includes(product.id)}
                       className="w-4 h-4 bg-accent/20 border-white/10 rounded"
@@ -695,21 +714,20 @@ const AdminDashboard = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{product.stock_quantity}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                      product.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${product.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                      }`}>
                       {product.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <div className="flex justify-end space-x-2">
-                      <button 
+                      <button
                         onClick={() => handleOpenModal('product', product)}
                         className="p-1 text-blue-400 hover:text-blue-300 transition-colors"
                       >
                         <Edit size={16} />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDelete('product', product.id)}
                         className="p-1 text-red-400 hover:text-red-300 transition-colors"
                       >
@@ -731,7 +749,7 @@ const AdminDashboard = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-2xl font-bold text-glow uppercase tracking-wider">Eco-Services</h3>
-        <button 
+        <button
           onClick={() => handleOpenModal('service')}
           className="btn-premium flex items-center space-x-2"
         >
@@ -739,15 +757,15 @@ const AdminDashboard = () => {
           <span>Add Service</span>
         </button>
       </div>
-      
+
       <div className="glass rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="glass-dark">
               <tr>
                 <th className="px-6 py-4 text-left">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     onChange={() => handleSelectAll('service', services)}
                     checked={selectedServiceIds.length === services.length && services.length > 0}
                     className="w-4 h-4 bg-accent/20 border-white/10 rounded"
@@ -761,11 +779,11 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {services.map((service) => (
+              {(services || []).map((service) => (
                 <tr key={service.id} className={`hover:bg-white/5 transition-colors ${selectedServiceIds.includes(service.id) ? 'bg-accent/5' : ''}`}>
                   <td className="px-6 py-4">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       onChange={() => handleSelectItem('service', service.id)}
                       checked={selectedServiceIds.includes(service.id)}
                       className="w-4 h-4 bg-accent/20 border-white/10 rounded"
@@ -783,13 +801,13 @@ const AdminDashboard = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{service.duration_hours}h</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <div className="flex justify-end space-x-2">
-                      <button 
+                      <button
                         onClick={() => handleOpenModal('service', service)}
                         className="p-1 text-blue-400 hover:text-blue-300 transition-colors"
                       >
                         <Edit size={16} />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDelete('service', service.id)}
                         className="p-1 text-red-400 hover:text-red-300 transition-colors"
                       >
@@ -825,7 +843,7 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {orders.map((order) => (
+              {(orders || []).map((order) => (
                 <tr key={order.id} className="hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">#{order.id}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -838,9 +856,8 @@ const AdminDashboard = () => {
                     KES {parseFloat(order.total_amount).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                      order.status === 'paid' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${order.status === 'paid' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                      }`}>
                       {order.status.replace('_', ' ')}
                     </span>
                   </td>
@@ -872,7 +889,7 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {bookings.map((booking) => (
+              {(bookings || []).map((booking) => (
                 <tr key={booking.id} className="hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">#{booking.id}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -884,9 +901,8 @@ const AdminDashboard = () => {
                     KES {parseFloat(booking.total_price).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                      booking.status === 'confirmed' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${booking.status === 'confirmed' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
+                      }`}>
                       {booking.status}
                     </span>
                   </td>
@@ -918,16 +934,15 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {users.map((user) => (
+              {(users || []).map((user) => (
                 <tr key={user.id} className="hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-white">{user.username}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{user.email}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                      user.role === 'admin' ? 'bg-accent/20 text-accent' : 'bg-white/10 text-gray-300'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${user.role === 'admin' ? 'bg-accent/20 text-accent' : 'bg-white/10 text-gray-300'
+                      }`}>
                       {user.role}
                     </span>
                   </td>
@@ -952,7 +967,7 @@ const AdminDashboard = () => {
 
   const LogisticsTab = () => {
     // Merge orders and bookings into a single chronological log
-    const orderEntries = orders.map(o => ({
+    const orderEntries = (orders || []).map(o => ({
       id: o.id,
       type: 'Order',
       customer: o.user_email || o.email || 'N/A',
@@ -964,7 +979,7 @@ const AdminDashboard = () => {
       tracking_number: o.tracking_number,
       destination: o.shipping_address ? `${o.shipping_address}${o.city ? ', ' + o.city : ''}` : 'N/A',
     }))
-    const bookingEntries = bookings.map(b => ({
+    const bookingEntries = (bookings || []).map(b => ({
       id: b.id,
       type: 'Booking',
       customer: b.user_email || 'N/A',
@@ -1004,15 +1019,15 @@ const AdminDashboard = () => {
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Order Status</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Delivery</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Tracking</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {combined.map((entry, idx) => (
+                {(combined || []).map((entry, idx) => (
                   <tr key={`${entry.type}-${entry.id}-${idx}`} className="hover:bg-white/5 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                        entry.type === 'Order' ? 'bg-accent/20 text-accent' : 'bg-blue-500/20 text-blue-400'
-                      }`}>
+                      <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${entry.type === 'Order' ? 'bg-accent/20 text-accent' : 'bg-blue-500/20 text-blue-400'
+                        }`}>
                         {entry.type}
                       </span>
                     </td>
@@ -1036,36 +1051,43 @@ const AdminDashboard = () => {
                       KES {parseFloat(entry.amount).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                        entry.status === 'paid' || entry.status === 'confirmed' ? 'bg-green-500/20 text-green-400' :
-                        entry.status === 'pending' || entry.status === 'pending_payment' ? 'bg-yellow-500/20 text-yellow-400' :
-                        entry.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
-                        'bg-blue-500/20 text-blue-400'
-                      }`}>
+                      <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${entry.status === 'paid' || entry.status === 'confirmed' ? 'bg-green-500/20 text-green-400' :
+                          entry.status === 'pending' || entry.status === 'pending_payment' ? 'bg-yellow-500/20 text-yellow-400' :
+                            entry.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                              'bg-blue-500/20 text-blue-400'
+                        }`}>
                         {entry.status?.replace('_', ' ')}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {entry.delivery_status ? (
-                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                          entry.delivery_status === 'delivered' ? 'bg-green-500/20 text-green-400' :
-                          entry.delivery_status === 'in_transit' ? 'bg-blue-500/20 text-blue-400' :
-                          entry.delivery_status === 'dispatched' ? 'bg-purple-500/20 text-purple-400' :
-                          'bg-gray-500/20 text-gray-400'
-                        }`}>
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${entry.delivery_status === 'delivered' ? 'bg-green-500/20 text-green-400' :
+                            entry.delivery_status === 'in_transit' ? 'bg-blue-500/20 text-blue-400' :
+                              entry.delivery_status === 'dispatched' ? 'bg-purple-500/20 text-purple-400' :
+                                'bg-gray-500/20 text-gray-400'
+                          }`}>
                           {entry.delivery_status.replace('_', ' ')}
                         </span>
                       ) : (
                         <span className="text-gray-600 text-xs italic">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {entry.tracking_number ? (
-                        <span className="text-accent font-mono text-xs bg-accent/10 px-2 py-1 rounded">{entry.tracking_number}</span>
-                      ) : entry.transport_provider ? (
-                        <span className="text-gray-300 text-xs">{entry.transport_provider}</span>
-                      ) : (
-                        <span className="text-gray-600 text-xs italic">—</span>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      {entry.type === 'Order' && (
+                        <button
+                          onClick={() => {
+                            setSelectedEntry(entry);
+                            setFormData({
+                              delivery_status: entry.delivery_status,
+                              transport_provider: entry.transport_provider,
+                              tracking_number: entry.tracking_number,
+                            });
+                            setIsLogisticsModalOpen(true);
+                          }}
+                          className="p-1 px-3 bg-accent/20 text-accent rounded-lg hover:bg-accent/30 transition-all text-xs"
+                        >
+                          Update
+                        </button>
                       )}
                     </td>
                   </tr>
@@ -1112,15 +1134,14 @@ const AdminDashboard = () => {
         {/* Tab Navigation */}
         <div className="glass rounded-xl p-2 mb-8 overflow-x-auto">
           <div className="flex space-x-2 min-w-max">
-            {tabs.map((tab) => (
+            {(tabs || []).map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${
-                  activeTab === tab.id
+                className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${activeTab === tab.id
                     ? 'bg-accent text-white shadow-lg neon-glow-accent'
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
-                }`}
+                  }`}
               >
                 {tab.icon}
                 <span className="font-medium">{tab.label}</span>
@@ -1155,6 +1176,66 @@ const AdminDashboard = () => {
         >
           <ModalBody>
             {modalType === 'product' ? <ProductForm /> : <ServiceForm />}
+          </ModalBody>
+        </Modal>
+
+        {/* LOGISTICS UPDATE MODAL */}
+        <Modal
+          isOpen={isLogisticsModalOpen}
+          onClose={() => setIsLogisticsModalOpen(false)}
+          title={`Update Logistics: Order #${selectedEntry?.id}`}
+          size="medium"
+        >
+          <ModalBody>
+            <form onSubmit={handleUpdateLogistics} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Delivery Status</label>
+                <select
+                  name="delivery_status"
+                  value={formData.delivery_status || ''}
+                  onChange={handleInputChange}
+                  className="w-full bg-black/30 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-accent"
+                >
+                  <option value="pending">Pending Dispatch</option>
+                  <option value="dispatched">Dispatched</option>
+                  <option value="in_transit">In Transit</option>
+                  <option value="delivered">Delivered</option>
+                </select>
+              </div>
+              <Input
+                label="Transport Provider"
+                name="transport_provider"
+                value={formData.transport_provider || ''}
+                onChange={handleInputChange}
+                placeholder="e.g. G4S, Wells Fargo, Own Fleet"
+              />
+              <Input
+                label="Tracking Number / Ref"
+                name="tracking_number"
+                value={formData.tracking_number || ''}
+                onChange={handleInputChange}
+                placeholder="Enter tracking number"
+              />
+              <Input
+                label="Est. Delivery Date"
+                name="estimated_delivery_date"
+                type="date"
+                value={formData.estimated_delivery_date || ''}
+                onChange={handleInputChange}
+              />
+              <ModalFooter>
+                <button
+                  type="button"
+                  onClick={() => setIsLogisticsModalOpen(false)}
+                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn-premium">
+                  Update Logistics
+                </button>
+              </ModalFooter>
+            </form>
           </ModalBody>
         </Modal>
       </div>
