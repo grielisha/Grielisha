@@ -229,7 +229,8 @@ const AdminDashboard = () => {
   const fetchCategories = async () => {
     try {
       const response = await api.get('products/categories/')
-      setCategories(response.data)
+      const data = response.data.results || response.data || []
+      setCategories(data)
     } catch (err) {
       console.error("Failed to fetch categories")
     }
@@ -359,9 +360,28 @@ const AdminDashboard = () => {
           required
         >
           <option value="">Select Category</option>
-          {categories.map(cat => (
+          {(categories || []).map(cat => (
             <option key={cat.id} value={cat.id}>{cat.name}</option>
           ))}
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Category Type</label>
+        <select
+          name="category_type"
+          value={formData.category_type || ''}
+          onChange={handleInputChange}
+          className="w-full bg-black/30 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-accent"
+          required
+        >
+          <option value="">Select Category Type</option>
+          <option value="cleaning_detergents">Cleaning Detergents</option>
+          <option value="cleaning_tools">Cleaning Tools & Machines</option>
+          <option value="stationery">Stationery</option>
+          <option value="art_supplies">Art Supplies</option>
+          <option value="snacks">Snacks</option>
+          <option value="foodstuffs">Foodstuffs</option>
+          <option value="computer_electronics">Computer Electronics</option>
         </select>
       </div>
       <div>
