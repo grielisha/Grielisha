@@ -5,7 +5,7 @@ from products.models import Product
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
-        fields = ('id', 'order', 'payment_method', 'transaction_code', 'amount', 'status', 'created_at', 'updated_at')
+        fields = ('id', 'order', 'booking', 'payment_method', 'transaction_code', 'amount', 'status', 'created_at', 'updated_at')
         read_only_fields = ('user', 'status', 'created_at', 'updated_at')
 
 class CartItemSerializer(serializers.ModelSerializer):

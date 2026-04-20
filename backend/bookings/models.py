@@ -6,9 +6,12 @@ User = get_user_model()
 
 class Booking(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('confirmed', 'Confirmed'),
+        ('pending', 'Pending Confirmation'),
+        ('pending_payment', 'Pending Payment Verification'),
+        ('paid', 'Paid / Confirmed'),
         ('completed', 'Completed'),
+        ('rejected', 'Payment Rejected'),
+        ('cancelled', 'Cancelled'),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings')

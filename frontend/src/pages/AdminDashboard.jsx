@@ -251,17 +251,18 @@ const AdminDashboard = () => {
   }
 
   const handleSelectAll = (type, items) => {
+    const itemIds = (items || []).map(i => i.id)
     if (type === 'product') {
-      if (selectedProductIds.length === items.length) {
+      if (selectedProductIds.length === itemIds.length) {
         setSelectedProductIds([])
       } else {
-        setSelectedProductIds(items.map(i => i.id))
+        setSelectedProductIds(itemIds)
       }
     } else {
-      if (selectedServiceIds.length === items.length) {
+      if (selectedServiceIds.length === itemIds.length) {
         setSelectedServiceIds([])
       } else {
-        setSelectedServiceIds(items.map(i => i.id))
+        setSelectedServiceIds(itemIds)
       }
     }
   }
@@ -800,6 +801,11 @@ const AdminDashboard = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-accent font-semibold">
                     KES {parseFloat(service.base_price).toLocaleString()}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${service.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                      {service.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{service.duration_hours}h</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <div className="flex justify-end space-x-2">
@@ -903,9 +909,13 @@ const AdminDashboard = () => {
                     KES {parseFloat(booking.total_price).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${booking.status === 'confirmed' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
-                      }`}>
-                      {booking.status}
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+                      booking.status === 'paid' || booking.status === 'confirmed' ? 'bg-green-500/20 text-green-400' : 
+                      booking.status === 'pending' || booking.status === 'pending_payment' ? 'bg-yellow-500/20 text-yellow-400' :
+                      booking.status === 'rejected' || booking.status === 'cancelled' ? 'bg-red-500/20 text-red-400' :
+                      'bg-blue-500/20 text-blue-400'
+                    }`}>
+                      {booking.status?.replace('_', ' ') || 'pending'}
                     </span>
                   </td>
                 </tr>

@@ -52,7 +52,7 @@ class UpdateCartItemView(generics.RetrieveUpdateDestroyAPIView):
 def create_order(request):
     serializer = CreateOrderSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
-        cart = request.user.cart
+        cart, created = Cart.objects.get_or_create(user=request.user)
         total_amount = cart.total_amount
         
         order = Order.objects.create(
@@ -127,15 +127,24 @@ def verify_payment(request, pk):
         
         if action == 'verify':
             payment.status = 'verified'
-            payment.order.status = 'paid'
+            if payment.order:
+                payment.order.status = 'paid'
+                payment.order.save()
+            if payment.booking:
+                payment.booking.status = 'paid'
+                payment.booking.save()
         elif action == 'reject':
             payment.status = 'rejected'
-            payment.order.status = 'rejected'
+            if payment.order:
+                payment.order.status = 'rejected'
+                payment.order.save()
+            if payment.booking:
+                payment.booking.status = 'rejected'
+                payment.booking.save()
         else:
             return Response({'error': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
             
         payment.save()
-        payment.order.save()
         return Response(PaymentSerializer(payment).data)
     except Payment.DoesNotExist:
         return Response({'error': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)

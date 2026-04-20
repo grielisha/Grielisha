@@ -77,7 +77,7 @@ const Wishlist = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {wishlist.product_details.map((product) => (
+            {(wishlist?.product_details || []).map((product) => (
               <motion.div
                 key={product.id}
                 layout

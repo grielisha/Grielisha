@@ -72,9 +72,11 @@ const UserDashboard = () => {
         return 'text-green-400'
       case 'pending':
       case 'pending_payment':
+      case 'confirmed':
         return 'text-yellow-400'
       case 'rejected':
       case 'failed':
+      case 'cancelled':
         return 'text-red-400'
       default:
         return 'text-gray-400'
@@ -101,7 +103,9 @@ const UserDashboard = () => {
     switch (status) {
       case 'pending_payment': return 'Awaiting Verification'
       case 'paid': return 'Paid & Confirmed'
-      default: return status
+      case 'cancelled': return 'Cancelled'
+      case 'rejected': return 'Rejected'
+      default: return status?.replace('_', ' ') || status
     }
   }
 
@@ -122,7 +126,7 @@ const UserDashboard = () => {
       >
         <div className="flex items-center justify-between mb-4">
           <ShoppingBag className="text-accent" size={24} />
-          <span className="text-2xl font-bold text-white">{orders.length}</span>
+          <span className="text-2xl font-bold text-white">{(orders || []).length}</span>
         </div>
         <h3 className="text-white font-semibold">Total Orders</h3>
         <p className="text-gray-300 text-sm">All time purchases</p>
@@ -136,7 +140,7 @@ const UserDashboard = () => {
       >
         <div className="flex items-center justify-between mb-4">
           <Calendar className="text-accent" size={24} />
-          <span className="text-2xl font-bold text-white">{bookings.length}</span>
+          <span className="text-2xl font-bold text-white">{(bookings || []).length}</span>
         </div>
         <h3 className="text-white font-semibold">Service Bookings</h3>
         <p className="text-gray-300 text-sm">Booked services</p>
@@ -151,7 +155,7 @@ const UserDashboard = () => {
         <div className="flex items-center justify-between mb-4">
           <Package className="text-accent" size={24} />
           <span className="text-2xl font-bold text-white">
-            {orders.filter(o => o.status === 'pending').length}
+            {(orders || []).filter(o => o.status === 'pending').length}
           </span>
         </div>
         <h3 className="text-white font-semibold">Pending Orders</h3>
@@ -167,7 +171,7 @@ const UserDashboard = () => {
         <div className="flex items-center justify-between mb-4">
           <CheckCircle className="text-accent" size={24} />
           <span className="text-2xl font-bold text-white">
-            {orders.filter(o => o.status === 'delivered').length}
+            {(orders || []).filter(o => o.status === 'delivered').length}
           </span>
         </div>
         <h3 className="text-white font-semibold">Completed Orders</h3>
@@ -179,9 +183,9 @@ const UserDashboard = () => {
   const OrdersTab = () => (
     <div className="space-y-6">
       <h3 className="text-2xl font-bold text-glow mb-6">Order History</h3>
-      {orders.length > 0 ? (
+      {(orders || []).length > 0 ? (
         <div className="space-y-4">
-          {orders.map((order) => (
+          {(orders || []).map((order) => (
             <motion.div
               key={order.id}
               initial={{ opacity: 0, x: -20 }}
@@ -203,7 +207,7 @@ const UserDashboard = () => {
                 <div>
                   <p className="text-gray-400 text-xs mb-2 uppercase font-bold tracking-widest">Items ({order.item_count})</p>
                   <div className="space-y-1">
-                    {order.items.map((item, index) => (
+                    {(order.items || []).map((item, index) => (
                       <div key={index} className="text-sm text-gray-300 flex justify-between">
                         <span>{item.quantity}x {item.name}</span>
                         <span className="text-white/50">KES {item.price.toLocaleString()}</span>
@@ -287,9 +291,9 @@ const UserDashboard = () => {
   const BookingsTab = () => (
     <div className="space-y-6">
       <h3 className="text-2xl font-bold text-glow mb-6">Service Bookings</h3>
-      {bookings.length > 0 ? (
+      {(bookings || []).length > 0 ? (
         <div className="space-y-4">
-          {bookings.map((booking) => (
+          {(bookings || []).map((booking) => (
             <motion.div
               key={booking.id}
               initial={{ opacity: 0, x: -20 }}
@@ -472,7 +476,7 @@ const UserDashboard = () => {
         {/* Tab Navigation */}
         <div className="glass rounded-xl p-2 mb-8">
           <div className="flex flex-wrap gap-2">
-            {tabs.map((tab) => (
+            {(tabs || []).map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -579,7 +583,7 @@ const UserDashboard = () => {
                 <div>
                   <h4 className="text-white font-bold mb-3 border-b border-white/10 pb-2">Purchased Items</h4>
                   <div className="space-y-3">
-                    {selectedOrder.items.map((item, idx) => (
+                    {(selectedOrder.items || []).map((item, idx) => (
                       <div key={idx} className="flex justify-between items-center bg-white/5 p-3 rounded-lg">
                         <div className="flex items-center">
                           <div className="w-8 h-8 rounded bg-accent/20 flex items-center justify-center text-accent font-bold mr-3">{item.quantity}x</div>

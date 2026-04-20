@@ -45,7 +45,7 @@ const Services = () => {
     return 'Other'
   }
 
-  const filteredServices = services.filter(service => {
+  const filteredServices = (services || []).filter(service => {
     const matchesCategory = selectedCategory === '' || selectedCategory === 'All Services' || getCategoryForService(service.service_type) === selectedCategory
     const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           service.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -174,7 +174,7 @@ const Services = () => {
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-accent transition-colors"
             >
-              {serviceCategories.map(category => (
+              {(serviceCategories || []).map(category => (
                 <option key={category} value={category === 'All Services' ? '' : category}>
                   {category}
                 </option>
@@ -190,9 +190,9 @@ const Services = () => {
         </div>
 
         {/* Services Grid */}
-        {filteredServices.length > 0 ? (
+        {(filteredServices || []).length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredServices.map((service, index) => (
+            {(filteredServices || []).map((service, index) => (
               <ServiceCard key={service.id} service={service} index={index} />
             ))}
           </div>

@@ -48,21 +48,27 @@ class PaymentAdmin(admin.ModelAdmin):
         for payment in queryset:
             payment.status = 'verified'
             payment.save()
-            # Synchronize order status
-            order = payment.order
-            order.status = 'paid'
-            order.save()
-    approve_payments.short_description = "Approve selected payments (Marks Orders as Paid)"
+            # Synchronize order or booking status
+            if payment.order:
+                payment.order.status = 'paid'
+                payment.order.save()
+            if payment.booking:
+                payment.booking.status = 'paid'
+                payment.booking.save()
+    approve_payments.short_description = "Approve payments (Syncs Order/Booking)"
 
     def reject_payments(self, request, queryset):
         for payment in queryset:
             payment.status = 'rejected'
             payment.save()
-            # Synchronize order status
-            order = payment.order
-            order.status = 'rejected'
-            order.save()
-    reject_payments.short_description = "Reject selected payments (Marks Orders as Rejected)"
+            # Synchronize order or booking status
+            if payment.order:
+                payment.order.status = 'rejected'
+                payment.order.save()
+            if payment.booking:
+                payment.booking.status = 'rejected'
+                payment.booking.save()
+    reject_payments.short_description = "Reject payments (Syncs Order/Booking)"
 
 @admin.register(CartItem)
 class CartItemAdmin(admin.ModelAdmin):

@@ -44,22 +44,22 @@ const Shop = () => {
     try {
       const response = await api.get('products/categories/')
       const data = response.data.results || response.data || []
-      setCategories(['All Categories', ...data.map(c => c.name)])
+      setCategories(['All Categories', ...(data || []).map(c => c.name)])
     } catch (err) {
       console.error("Failed to load categories")
     }
   }
 
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = (products || []).filter(product => {
     const matchesCategory = selectedCategory === '' || selectedCategory === 'All Categories' || product.category === selectedCategory
     const matchesSearch = product.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
                           product.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     return matchesCategory && matchesSearch
   }).sort((a, b) => {
-    if (sortBy === 'name') return a.name.localeCompare(b.name)
-    if (sortBy === 'price-low') return a.price - b.price
-    if (sortBy === 'price-high') return b.price - a.price
-    if (sortBy === 'rating') return b.rating - a.rating
+    if (sortBy === 'name') return (a.name || '').localeCompare(b.name || '')
+    if (sortBy === 'price-low') return (a.price || 0) - (b.price || 0)
+    if (sortBy === 'price-high') return (b.price || 0) - (a.price || 0)
+    if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0)
     return 0
   })
 
@@ -179,7 +179,7 @@ const Shop = () => {
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-accent transition-colors"
             >
-              {categories.map(category => (
+              {(categories || []).map(category => (
                 <option key={category} value={category === 'All Categories' ? '' : category}>
                   {category}
                 </option>
@@ -207,9 +207,9 @@ const Shop = () => {
         </div>
 
         {/* Products Grid */}
-        {filteredProducts.length > 0 ? (
+        {(filteredProducts || []).length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product, index) => (
+            {(filteredProducts || []).map((product, index) => (
               <ProductCard key={product.id} product={product} index={index} />
             ))}
           </div>
