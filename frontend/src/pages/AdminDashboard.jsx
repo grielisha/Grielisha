@@ -162,7 +162,7 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {(payments || []).length > 0 ? (payments || []).map((payment) => (
+              {(payments || []).map((payment) => (
                 <tr key={payment.id} className="hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2 text-white">
