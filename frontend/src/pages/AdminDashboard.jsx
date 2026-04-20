@@ -176,22 +176,23 @@ const AdminDashboard = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-white">{payment.transaction_code}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-accent font-bold">KES {parseFloat(payment.amount).toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${payment.status === 'verified' ? 'bg-green-500/20 text-green-400' :
-                        payment.status === 'rejected' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'
-                      }`}>
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+                      payment.status === 'verified' ? 'bg-green-500/20 text-green-400' : 
+                      payment.status === 'rejected' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'
+                    }`}>
                       {payment.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     {payment.status === 'pending' && (
                       <div className="flex justify-end space-x-2">
-                        <button
+                        <button 
                           onClick={() => handleVerifyPayment(payment.id, 'verify')}
                           className="p-1 px-3 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-all text-xs flex items-center"
                         >
                           <Check size={14} className="mr-1" /> Approve
                         </button>
-                        <button
+                        <button 
                           onClick={() => handleVerifyPayment(payment.id, 'reject')}
                           className="p-1 px-3 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-all text-xs flex items-center"
                         >
@@ -202,6 +203,7 @@ const AdminDashboard = () => {
                   </td>
                 </tr>
               ))}
+
             </tbody>
           </table>
           {payments.length === 0 && (
